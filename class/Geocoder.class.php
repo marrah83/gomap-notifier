@@ -125,6 +125,7 @@ Class Geocoder
                             // Set sublocality by first found.
                             $locality = empty($sublocality) ? $address_component->long_name : $sublocality;
                         }
+                        break;
                     }
                 }
             }
