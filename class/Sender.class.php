@@ -519,11 +519,11 @@ class Sender {
      */
     public function sendTelegram($data, $message, $chatId)
     {
+	// Send telegram location.
+        $this->sendTelegramLocation($chatId, $data);
+
         // Send telegram message.
         $this->sendTelegramMessage($chatId, $message);
-
-        // Send telegram location.
-        $this->sendTelegramLocation($chatId, $data);
 
         // We need to sleep for 1 second.
         sleep(1);
