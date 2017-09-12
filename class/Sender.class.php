@@ -704,7 +704,7 @@ class Sender {
                                             'last_name' => $this->config->raidBot->lastName,
                                             'first_name' => $this->config->raidBot->firstName
                                         ),
-                                        'text' => '/raid ' . $raid->bossName . ',' . $raid->latitude . ',' . $raid->longitude . ',' . $minutes . ',' . $team . ',' . $raid->name . ',' . $locArray['district'] . ',' . $locArray['street']
+                                        'text' => '/raid ' . $raid->bossName . ',' . $raid->latitude . ',' . $raid->longitude . ',' . $minutes . ',' . $team . ',' . str_replace(',','|',$raid->name) . ',' . $locArray['district'] . ',' . $locArray['street']
                                     )
                                 );
 
