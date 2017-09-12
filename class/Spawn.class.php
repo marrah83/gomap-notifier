@@ -157,7 +157,7 @@ class Spawn {
     {
         $array = array(
             'mid' => $this->maxeid,
-            'gid' => $this->maxgid,
+            'gid' => $this->maxgid - 10000,
             'ex'  => '[' . implode(",", $this->ignoreList) . ']',
             'w'   => $this->config->map->boundWest,
             'e'   => $this->config->map->boundEast,
@@ -169,8 +169,8 @@ class Spawn {
         $query = http_build_query($array);
 
         // Build url.
-        $url = $this->config->map->url . '/m.php?' . $query;
-
+        $url = $this->config->map->url . '/mnew.php?' . $query;
+echo $url . '\n';
         return $url;
     }
 
@@ -240,6 +240,15 @@ class Spawn {
         // Init empty gyms array.
         $gyms = array();
 
+	try {
+
+		$dbh = new PDO('sqlite:/var/www/html/gomap-notifier/raids.sqlite',NULL, NULL, array(PDO::ATTR_PERSISTENT => TRUE));
+		$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	}
+	catch ( PDOException $exception ) {
+
+    		echo $exception->getMessage();
+        }
         // Any notification method must be enabled.
         if ((isset($this->config->telegram->active) && $this->config->telegram->active === true) ||
             (isset($this->config->discord->active) && $this->config->discord->active === true)) {
@@ -247,7 +256,7 @@ class Spawn {
             // Gym found.
             if (!empty($this->data) && !empty($this->data->gyms)) {
 
-                $lastGid = $this->maxgid;
+                $lastGid = $this->maxgid - 10000; 
 
                 // Iterate each gym.
                 foreach ($this->data->gyms AS $gym) {
@@ -257,29 +266,64 @@ class Spawn {
                         $this->maxgid = $gym->ts;
                     }
 
-                    // Don't collect gyms on the first run.
-                    if (!$this->firstRunGid) {
                         // Raid detected. Raid level and Boss pokemon id are required.
                         if (!empty($gym->lvl) && !empty($gym->rpid)) {
                             // Check if the raid should trigger a notification.
                             if ($this->checkRaid($gym->lvl, $gym->rpid)) {
+
+				$count = 0;
+				try {
+
+					$query = $dbh->prepare( 'SELECT COUNT(*) FROM raids WHERE gym = :gym AND timestamp = :timestamp' );
+					$query->bindValue( ':gym', $gym->gym_id );
+					$query->bindValue( ':timestamp', $gym->rs );
+					$query->execute();
+				}
+				catch ( PDOException $exception ) {
+
+					$dbh = null;
+					echo $exception->getMessage();
+  				}
+				$count = $query->fetchColumn();
                                 // Raid wasn't found before.
-                                if ($gym->ts > $lastGid) {
+				if ( $count == 0 ) {
+
                                     // Raid is not over.
                                     if ($timestamp < $gym->re) {
+
+					$allreadyInArray = false;
+					// Raid allready in same run
+					foreach ($gyms AS $allreadyContains) {
+
+						if ( $allreadyContains->gym_id == $gym->gym_id ) {
+
+							$allreadyInArray = true;
+							break;
+						}
+					}
+					if ( $allreadyInArray )
+						continue;
+
                                         // Push into gyms array.
                                         array_push($gyms, $gym);
+
+					echo $gym->gym_id . '\n';
+					echo $gym->ts . '\n';	
+					$query = $dbh->prepare( 'INSERT INTO raids ( gym, timestamp ) VALUES ( :gym, :timestamp )' );
+        	                        $query->bindValue( ':gym', $gym->gym_id );
+                                	$query->bindValue( ':timestamp', $gym->rs );
+                                	$query->execute();
                                     }
                                 }
                             }
                         }
                     }
-                }
 
                 // Write last gym id to file.
                 $this->updateMaxGid();
             }
         }
+	$dbh = null;
 
         // Return them.
         return $gyms;
