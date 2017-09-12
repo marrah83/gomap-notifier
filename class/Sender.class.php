@@ -668,7 +668,7 @@ class Sender {
                                 $raid->bossName = $this->nameList->{$raid->rpid};
 
                                 // Get minutes left.
-                                $minutes = round(($raid->re - time()) / 60) - 1;
+                                $minutes = intval(($raid->re - time()) / 60);
 
                                 // Team id found.
                                 if (!empty($raid->team_id)) {
