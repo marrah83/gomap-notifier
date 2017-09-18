@@ -686,17 +686,23 @@ class Sender {
                                         default:
                                             $team = '';
                                     }
-
                                 // Team id is missing.
                                 } else {
                                     $team = '';
                                 }
 
+				// Split level4 and level5 if configurated
+				$chatId = $this->config->channel->raidBot->{$locArray['district']};
+				$lvl4 = $locArray['district'] . '_lvl4';
+				if ($raid->lvl == 4 && !empty($this->config->channel->raidBot->{$lvl4})) {
+
+					$chatId = $this->config->channel->raidBot->{$lvl4};
+				}
                                 // Build message array.
                                 $message = array(
                                     'message' => array(
                                         'chat' => array(
-                                            'id' => $this->config->channel->raidBot->{$locArray['district']},
+                                            'id' => $chatId,
                                             'type' => $this->config->raidBot->chatType
                                         ),
                                         'from' => array(
