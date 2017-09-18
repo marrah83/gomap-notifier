@@ -18,8 +18,6 @@ class Spawn {
     private $config;
     // Max encounterId. (string)
     private $maxeid;
-    // Max gymId. (string)
-    private $maxgid;
     // Ignore list. (array)
     private $ignoreList;
 
@@ -33,9 +31,6 @@ class Spawn {
 
         // Get the max encounterId.
         $this->getMaxEid();
-
-        // Get the max gymId.
-        $this->getMaxGid();
 
         // Get the global ignore list.
         $this->getIgnoreList();
@@ -74,44 +69,12 @@ class Spawn {
     }
 
     /**
-     * Get max gym id.
-     */
-    private function getMaxGid()
-    {
-        // Get max gym id from txt file.
-        $maxgid = file_get_contents($this->config->file->maxgid);
-
-        // Id found.
-        if (!empty($maxgid)) {
-            $this->maxgid = $maxgid;
-
-        // First run detected.
-        } else {
-            // Set to zero.
-            $this->maxgid = 0;
-
-            // Mark this as first run. (no message send)
-            $this->firstRunGid = true;
-        }
-
-    }
-
-    /**
      * Update max encounter id.
      */
     private function updateMaxEid()
     {
         // Write max encounter id to txt file.
         file_put_contents($this->config->file->maxeid, $this->maxeid);
-    }
-
-    /**
-     * Update max gym id.
-     */
-    private function updateMaxGid()
-    {
-        // Write max gym id to txt file.
-        file_put_contents($this->config->file->maxgid, $this->maxgid);
     }
 
     /**
@@ -157,7 +120,7 @@ class Spawn {
     {
         $array = array(
             'mid' => $this->maxeid,
-            'gid' => $this->maxgid - 10000,
+            'gid' => 0,
             'ex'  => '[' . implode(",", $this->ignoreList) . ']',
             'w'   => $this->config->map->boundWest,
             'e'   => $this->config->map->boundEast,
@@ -256,15 +219,8 @@ echo $url . '\n';
             // Gym found.
             if (!empty($this->data) && !empty($this->data->gyms)) {
 
-                $lastGid = $this->maxgid - 10000; 
-
                 // Iterate each gym.
                 foreach ($this->data->gyms AS $gym) {
-                    // Find max gym id.
-                    if ($gym->ts > $this->maxgid) {
-                        // Use the timestamp as gymId.
-                        $this->maxgid = $gym->ts;
-                    }
 
                         // Raid detected. Raid level and Boss pokemon id are required.
                         if (!empty($gym->lvl) && !empty($gym->rpid)) {
@@ -318,9 +274,6 @@ echo $url . '\n';
                             }
                         }
                     }
-
-                // Write last gym id to file.
-                $this->updateMaxGid();
             }
         }
 	$dbh = null;
