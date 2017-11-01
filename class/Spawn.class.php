@@ -132,7 +132,7 @@ class Spawn {
         $query = http_build_query($array);
 
         // Build url.
-        $url = $this->config->map->url . '/mnew.php?' . $query;
+        $url = $this->config->map->url . '/m.php?' . $query;
 echo $url . '\n';
         return $url;
     }
@@ -223,6 +223,10 @@ echo $url . '\n';
                 foreach ($this->data->gyms AS $gym) {
 
                         // Raid detected. Raid level and Boss pokemon id are required.
+						// set boss to unknown, if egg not hatched yet
+						if (empty($gym->rpid)) {
+							$gym->rpid = 9999;
+						}
                         if (!empty($gym->lvl) && !empty($gym->rpid)) {
                             // Check if the raid should trigger a notification.
                             if ($this->checkRaid($gym->lvl, $gym->rpid)) {
@@ -230,9 +234,10 @@ echo $url . '\n';
 				$count = 0;
 				try {
 
-					$query = $dbh->prepare( 'SELECT COUNT(*) FROM raids WHERE gym = :gym AND timestamp = :timestamp' );
+					$query = $dbh->prepare( 'SELECT COUNT(*) FROM raids WHERE gym = :gym AND timestamp = :timestamp AND rpid = :rpid');
 					$query->bindValue( ':gym', $gym->gym_id );
 					$query->bindValue( ':timestamp', $gym->rs );
+					$query->bindValue( ':rpid', $gym->rpid );
 					$query->execute();
 				}
 				catch ( PDOException $exception ) {
@@ -265,9 +270,10 @@ echo $url . '\n';
 
 					echo $gym->gym_id . '\n';
 					echo $gym->ts . '\n';	
-					$query = $dbh->prepare( 'INSERT INTO raids ( gym, timestamp ) VALUES ( :gym, :timestamp )' );
+					$query = $dbh->prepare( 'INSERT INTO raids ( gym, timestamp, rpid ) VALUES ( :gym, :timestamp, :rpid )' );
         	                        $query->bindValue( ':gym', $gym->gym_id );
                                 	$query->bindValue( ':timestamp', $gym->rs );
+                                	$query->bindValue( ':rpid', $gym->rpid );
                                 	$query->execute();
                                     }
                                 }

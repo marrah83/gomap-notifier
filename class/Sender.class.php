@@ -669,16 +669,21 @@ class Sender {
 
                                 // Get minutes left.
                                 $minutes = intval(($raid->re - time()) / 60);
-
+                                // Get minutes until begin.
+                                $startminutes = intval(($raid->rb - time()) / 60);
+                                if ($startminutes < 0 ){
+                                $startminutes = 0;
+                                }
+                                
                                 // Team id found.
                                 if (!empty($raid->team_id)) {
                                     // Switch by team id.
                                     switch ($raid->team_id) {
                                         case(1):
-                                            $team = 'valor';
+                                            $team = 'mystic';
                                             break;
                                         case(2):
-                                            $team = 'mystic';
+                                            $team = 'valor';
                                             break;
                                         case(3):
                                             $team = 'instinct';
@@ -710,7 +715,7 @@ class Sender {
                                             'last_name' => $this->config->raidBot->lastName,
                                             'first_name' => $this->config->raidBot->firstName
                                         ),
-                                        'text' => '/raid ' . $raid->bossName . ',' . $raid->latitude . ',' . $raid->longitude . ',' . $minutes . ',' . $team . ',' . str_replace(',','|',$raid->name) . ',' . $locArray['district'] . ',' . $locArray['street']
+                                        'text' => '/raid ' . $raid->bossName . ',' . $raid->latitude . ',' . $raid->longitude . ',' . $minutes . ',' . $team . ',' . str_replace(',','|',$raid->name) . ',' . $locArray['district'] . ',' . $locArray['street'] . ',' . $startminutes
                                     )
                                 );
 
