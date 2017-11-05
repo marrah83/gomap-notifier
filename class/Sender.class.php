@@ -469,15 +469,15 @@ class Sender {
             // Transform disappear time.
             if (!empty($spawn->disappear_time)) {
                 $time = date('H:i', $spawn->disappear_time);
-                $minutes = round(($spawn->disappear_time - time()) / 60);
-                $spawn->disappear_time = $time . ' (noch ' . $minutes . ' Minuten)';
+                $timeTillEnd = round(($spawn->disappear_time - time()) / 60);
+                $spawn->disappear_time = $time . ' (noch ' . $timeTillEnd . ' Minuten)';
             } else {
                 // Don't report mons without disappear time.
                 return $message;
             }
 
             // Minimum stay time is 5 minutes.
-            if ($minutes >= 5) {
+            if ($timeTillEnd >= 5) {
                 // Mon should be known.
                 if (!empty($spawn->pokemon_id) && !empty($this->nameList) && !empty($this->nameList->{$spawn->pokemon_id})) {
                     // Get pokemon name by id.
@@ -668,13 +668,18 @@ class Sender {
                                 $raid->bossName = $this->nameList->{$raid->rpid};
 
                                 // Get minutes left.
-                                $minutes = intval(($raid->re - time()) / 60);
-                                // Get minutes until begin.
-                                $startminutes = intval(($raid->rb - time()) / 60);
-                                if ($startminutes < 0 ){
-                                $startminutes = 0;
-                                }
-                                
+								$timeTillEnd = intval(($raid->re - time()) / 60);
+								$raidDuration = intval(($raid->re - $raid->rb)/60);
+								if ($timeTillEnd > $raidDuration)
+								{
+									$timeTillEnd = $raidDuration;
+								}
+								// Get minutes until egg hatches (when raid begins).
+								$timeToHatch = intval(($raid->rb - time()) / 60);
+								if ($timeToHatch < 0 ){
+								$timeToHatch = 0;
+								}
+								
                                 // Team id found.
                                 if (!empty($raid->team_id)) {
                                     // Switch by team id.
@@ -715,7 +720,8 @@ class Sender {
                                             'last_name' => $this->config->raidBot->lastName,
                                             'first_name' => $this->config->raidBot->firstName
                                         ),
-                                        'text' => '/raid ' . $raid->bossName . ',' . $raid->latitude . ',' . $raid->longitude . ',' . $minutes . ',' . $team . ',' . str_replace(',','|',$raid->name) . ',' . $locArray['district'] . ',' . $locArray['street'] . ',' . $startminutes
+										'text' => '/raid ' . $raid->bossName . ',' . $raid->latitude . ',' . $raid->longitude . ',' . $timeTillEnd . ',' . $team . ',' . str_replace(',','|',$raid->name) . ',' . $locArray['district'    ] . ',' . $locArray['street'] . ',' . $timeToHatch
+
                                     )
                                 );
 
